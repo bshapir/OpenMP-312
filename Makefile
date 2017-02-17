@@ -2,5 +2,5 @@
 	
 
 all:
-	g++ -fopenmp -ggdb  matAverager.cpp -o matavg
+	g++ -fopenmp -ggdb matAverager.cpp -o matavg
 
