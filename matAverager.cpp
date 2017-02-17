@@ -185,20 +185,20 @@
                         if ((i>0) && (i<(rows-1))) { //not at top or bot
                             if ((j>0) && (j<(cols-1))) //not at top bot, not at left right?
                             {
-                                storAvg[i*rows+j]=( ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1]))
+                                storAvg[i*cols+j]=( ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1]))
                                 + ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1]))
                                 + ((data[i + 1][j - 1]) + (data[i + 1][j]) + (data[i + 1][j + 1]))) /9.0;
                                 //top left + top mid + top right ....mid.....bot /9
                             }
                             else if (j == 0) //not top, bot. at left?
                             {
-                                storAvg[i*rows+j] =( ((data[i - 1][j]) + (data[i - 1][j + 1])) +
+                                storAvg[i*cols+j] =( ((data[i - 1][j]) + (data[i - 1][j + 1])) +
                                 ((data[i][j]) + (data[i][j + 1])) + ((data[i + 1][j]) +
                                 (data[i + 1][j + 1]))) /6.0;
                             }
                             else //otherwise not top, bot. at right.
                             {
-                                storAvg[i*rows+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j])) +
+                                storAvg[i*cols+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j])) +
                                 ((data[i][j - 1]) + (data[i][j])) +
                                 ((data[i + 1][j - 1]) + (data[i + 1][j])) ) / 6.0;
                             }
@@ -206,17 +206,17 @@
                         else if (i == 0) { // at top (first row)
                             if ((j>0) && (j<(cols-1)))
                             {
-                                storAvg[i*rows+j] =( ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1])) +
+                                storAvg[i*cols+j] =( ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1])) +
                                 ((data[i + 1][j - 1]) + (data[i + 1][j]) + (data[i + 1][j + 1])) ) / 6.0;
                             }
                             else if (j == 0)
                             {
-                                storAvg[i*rows+j] =( ((data[i][j]) + (data[i][j + 1])) +
+                                storAvg[i*cols+j] =( ((data[i][j]) + (data[i][j + 1])) +
                                 ((data[i + 1][j]) + (data[i + 1][j + 1])) )/4.0;
                             }
                             else
                             {
-                                storAvg[i*rows+j] =( ((data[i][j - 1]) + (data[i][j])) +
+                                storAvg[i*cols+j] =( ((data[i][j - 1]) + (data[i][j])) +
                                 ((data[i + 1][j - 1]) + (data[i + 1][j])) ) /4.0;
                             }
                         }
@@ -224,17 +224,17 @@
                             {
                             if ((j>0) && (j<(cols-1)))
                             {
-                                storAvg[i*rows+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1])) +
+                                storAvg[i*cols+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1])) +
                                 ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1]))) / 6.0;
                             }
                             else if (j == 0)
                             {
-                                storAvg[i*rows+j] =( ((data[i - 1][j]) + (data[i - 1][j + 1])) +
+                                storAvg[i*cols+j] =( ((data[i - 1][j]) + (data[i - 1][j + 1])) +
                                 ((data[i][j]) + (data[i][j + 1])) ) /4.0;
                             }
-                            else //if (j == (cols-1))
+                            else
                             {
-                                storAvg[i*rows+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j])) +
+                                storAvg[i*cols+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j])) +
                                 ((data[i][j - 1]) + (data[i][j])) ) /4.0;
                             }
                         }
@@ -243,14 +243,15 @@
             //traverse averages and find highest loc.
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < (cols); j++) {
-                    if (storAvg[i*rows+j] > highAvg) {
-                        highAvg = storAvg[i*rows+j];
+                    if (storAvg[i*cols+j] > highAvg) {
+                        highAvg = storAvg[i*cols+j];
                         highAvgLocation[0] = i;
                         highAvgLocation[1] = j;
                     }
                 }
             }
             S1.stop();
+
             cout << "largest average: " << highAvg << endl;
             cout << "found at cell: (" << highAvgLocation[0] << "," << highAvgLocation[1] << ")" << endl;
             cerr << "elapsed time: " << S1.getTime() << endl;
