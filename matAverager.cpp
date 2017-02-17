@@ -129,9 +129,9 @@
             {
                 if( argc < 3 )
                 {
-                    cerr<<"Usage: " << argv[0] << " [input data file] [num of threads to use] " << endl;
+                    cerr<<"Usage: exe [input data file] [num of threads to use] " << endl;
 
-                    cerr<<"or" << endl << "Usage: "<< argv[0] << " rand [num of threads to use] [num rows] [num cols] [seed value]" << endl;
+                    cerr<<"or Usage: exe rand [num of threads to use] [num rows] [num cols] [seed value]" << endl;
                             exit( 0 );
                     }
 
@@ -139,7 +139,7 @@
                 unsigned int rows, cols, seed;
                 unsigned int numThreads;
                 unsigned int ** data;
-                unsigned int ** storAvg;
+                float * storAvg; //2D array to store data[i][j] average.
                 //float avg = 0.0;
                 float highAvg = 0.0;
                 unsigned int highAvgLocation[2] = {0,0};
@@ -174,140 +174,77 @@
                 {
                     getDataFromFile( data,  argv[1], rows, cols );
                 }
-
-
-                 /*   cerr << "data: " << endl;
-                 for( unsigned int i = 0; i < rows; i++ ) {
-                    for( unsigned int j = 0; j < cols; j++ ) {
-                        cerr << "i,j,data " << i << ", " << j << ", ";
-                        cerr << data[i][j] << " ";
-                    }
-                    cerr << endl;
-                 }
-                 cerr<< endl;*/
-
-
-                // tell omp how many threads to use
                 omp_set_num_threads( numThreads );
                 stopwatch S1;
-                storAvg = new unsigned int*[ rows ];
-                for( unsigned int i = 0; i < rows; i++ )
-                {
-                    storAvg[i] = new unsigned int[ cols ];
-                }
+                storAvg = new float[ rows*cols ];
                 S1.start();
+
                 #pragma omp parallel for
                 for (int i = 0; i < rows; i++) {
                     for (int j = 0; j < (cols); j++) {
-                        //cout << "I is" << i << endl;
-                        //float avg = 0.0;
-                        if ((i>0) && (i<(rows-1))) {
-                            //cout << "Not at top or bot";
-                            if ((j>0) && (j<(cols-1)))
+                        if ((i>0) && (i<(rows-1))) { //not at top or bot
+                            if ((j>0) && (j<(cols-1))) //not at top bot, not at left right?
                             {
-                                //avg += ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1]));
-                                //avg += ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1]));
-                                //avg += ((data[i + 1][j - 1]) + (data[i + 1][j]) + (data[i + 1][j + 1]));
-                                //avg /= 9;
-                                storAvg[i][j]=( ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1]))
+                                storAvg[i*rows+j]=( ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1]))
                                 + ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1]))
-                                + ((data[i + 1][j - 1]) + (data[i + 1][j]) + (data[i + 1][j + 1]))) /9;
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                + ((data[i + 1][j - 1]) + (data[i + 1][j]) + (data[i + 1][j + 1]))) /9.0;
+                                //top left + top mid + top right ....mid.....bot /9
                             }
-                            else if (j == 0)
+                            else if (j == 0) //not top, bot. at left?
                             {
-                                storAvg[i][j] =( ((data[i - 1][j]) + (data[i - 1][j + 1])) +
+                                storAvg[i*rows+j] =( ((data[i - 1][j]) + (data[i - 1][j + 1])) +
                                 ((data[i][j]) + (data[i][j + 1])) + ((data[i + 1][j]) +
-                                (data[i + 1][j + 1]))) /6;
-                                //avg += ((data[i][j]) + (data[i][j + 1]));
-                                //avg += ((data[i + 1][j]) + (data[i + 1][j + 1]));
-                               // avg /= 6;
-                                //storAvg =()
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                (data[i + 1][j + 1]))) /6.0;
                             }
-                            else //if (j == (cols-1))
+                            else //otherwise not top, bot. at right.
                             {
-                                storAvg[i][j] =( ((data[i - 1][j - 1]) + (data[i - 1][j])) +
+                                storAvg[i*rows+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j])) +
                                 ((data[i][j - 1]) + (data[i][j])) +
-                                ((data[i + 1][j - 1]) + (data[i + 1][j])) ) / 6;
-                                //avg += ((data[i][j - 1]) + (data[i][j]));
-                                //avg += ((data[i + 1][j - 1]) + (data[i + 1][j]));
-                                //avg /= 6;
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                ((data[i + 1][j - 1]) + (data[i + 1][j])) ) / 6.0;
                             }
                         }
-                        else if (i == 0) {
-                            //cout << "At top";
+                        else if (i == 0) { // at top (first row)
                             if ((j>0) && (j<(cols-1)))
                             {
-                                storAvg[i][j] =( ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1])) +
-                                ((data[i + 1][j - 1]) + (data[i + 1][j]) + (data[i + 1][j + 1])) ) / 6;
-                                //avg += ((data[i + 1][j - 1]) + (data[i + 1][j]) + (data[i + 1][j + 1]));
-                                //avg /= 6;
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                storAvg[i*rows+j] =( ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1])) +
+                                ((data[i + 1][j - 1]) + (data[i + 1][j]) + (data[i + 1][j + 1])) ) / 6.0;
                             }
                             else if (j == 0)
                             {
-                                storAvg[i][j] =( ((data[i][j]) + (data[i][j + 1])) +
-                                ((data[i + 1][j]) + (data[i + 1][j + 1])) )/4;
-                                //avg += ((data[i + 1][j]) + (data[i + 1][j + 1]));
-                                //avg /= 4;
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                storAvg[i*rows+j] =( ((data[i][j]) + (data[i][j + 1])) +
+                                ((data[i + 1][j]) + (data[i + 1][j + 1])) )/4.0;
                             }
-                            else //if (j == (cols-1))
+                            else
                             {
-                                //cout << "I lived";
-                                storAvg[i][j] =( ((data[i][j - 1]) + (data[i][j])) +
-                                ((data[i + 1][j - 1]) + (data[i + 1][j])) ) /4;
-                                //avg += ((data[i][j - 1]) + (data[i][j]));
-                                //avg += ((data[i + 1][j - 1]) + (data[i + 1][j]));
-                                //avg /= 4;
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                storAvg[i*rows+j] =( ((data[i][j - 1]) + (data[i][j])) +
+                                ((data[i + 1][j - 1]) + (data[i + 1][j])) ) /4.0;
                             }
                         }
-                        else //if (i == (rows-1))
+                        else //otherwise you're at bot (last row)
                             {
-                            //cout << "At Bot";
                             if ((j>0) && (j<(cols-1)))
                             {
-                                storAvg[i][j] =( ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1])) +
-                                ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1]))) / 6;
-                                //avg += ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1]));
-                                //avg /= 6;
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                storAvg[i*rows+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j]) + (data[i - 1][j + 1])) +
+                                ((data[i][j - 1]) + (data[i][j]) + (data[i][j + 1]))) / 6.0;
                             }
                             else if (j == 0)
                             {
-                                storAvg[i][j] =( ((data[i - 1][j]) + (data[i - 1][j + 1])) +
-                                ((data[i][j]) + (data[i][j + 1])) ) /4;
-                                //avg += ((data[i][j]) + (data[i][j + 1]));
-                                //avg /= 4;
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                storAvg[i*rows+j] =( ((data[i - 1][j]) + (data[i - 1][j + 1])) +
+                                ((data[i][j]) + (data[i][j + 1])) ) /4.0;
                             }
                             else //if (j == (cols-1))
                             {
-                                storAvg[i][j] =( ((data[i - 1][j - 1]) + (data[i - 1][j])) +
-                                ((data[i][j - 1]) + (data[i][j])) ) /4;
-                                //avg += ((data[i][j - 1]) + (data[i][j]));
-                                //avg /= 4;
-                                //cout << "Avg at data[" << i << "][" << j << "] = " << avg << endl;
+                                storAvg[i*rows+j] =( ((data[i - 1][j - 1]) + (data[i - 1][j])) +
+                                ((data[i][j - 1]) + (data[i][j])) ) /4.0;
                             }
                         }
-                        //avg = 0;
-
-
-
-
-
-
-
                     }
-
             }
+            //traverse averages and find highest loc.
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < (cols); j++) {
-                    if (storAvg[i][j] > highAvg) {
-                        highAvg = storAvg[i][j];
+                    if (storAvg[i*rows+j] > highAvg) {
+                        highAvg = storAvg[i*rows+j];
                         highAvgLocation[0] = i;
                         highAvgLocation[1] = j;
                     }
@@ -317,6 +254,14 @@
             cout << "largest average: " << highAvg << endl;
             cout << "found at cell: (" << highAvgLocation[0] << "," << highAvgLocation[1] << ")" << endl;
             cerr << "elapsed time: " << S1.getTime() << endl;
+            //for (int i = 0; i< rows; i++) {
+              //  delete storAvg[i];
+            //}
+           // delete storAvg;
+            for (int i = 0; i< rows; i++) {
+                delete data[i];
+            }
+            delete data;
         }
 
 
